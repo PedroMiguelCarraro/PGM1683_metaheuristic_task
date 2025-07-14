@@ -1,34 +1,51 @@
-clear all
-close all
-clc
+clear all; close all; clc
 
-%Dimensão da instância
-d=2;
+% ###### Variaveis de Controle ######
 
-%Domínio de Solução
-%Ackley
-lb=-32.768;
-ub=32.768;
+% Escolha da Instancia
+% Capitais Brasileiras = 1
+% TSPLIB - pr226       = 2
+% Default              = Capitais Brasileira
+instance_type = 1;
 
-%Rosenbrock
-% lb=-2.048;
-% ub=2.048;
+% Numero de iteracoes ate encontrar o melhor vizinho
+% Caso 1 = 500;
+% Caso 2 = 2000;
+SAmax = 2000;
+
+% Numero maximo de simulacoes executadas
+nreplica = 50;
 
 %Parâmetros SA
 T0=100;
-SAmax=1000;
 Tf=1e-3;
 alfa=0.90;
-nreplica=50;
 
+
+% ###### Programa e logicas ######
+
+switch instance_type
+   case 1
+        % Capitais Brasileiras
+        instance_file_name = 'instances\brasil27.txt';
+        dist_matrix = load(instance_file_name);
+   case 2
+        % TSPLIB - pr226
+        instance_file_name = 'instances\pr226.txt';
+        dist_matrix = func_pre_process_distance_matrix(instance_file_name);
+   otherwise
+        % Capitais Brasileiras
+        instance_file_name = 'instances\brasil27.txt';
+        dist_matrix = load(instance_file_name);
+end
 
 for k=1:nreplica
     %iter=0; %usado no histórico
     %Geração da solução inicial
-    sol=gerasol(d,lb,ub);
+    sol=gerasol(dim,lb,ub);
     best=sol;
     %Avaliação da solução inicial
-    fo_sol=avalia(sol);
+    fo_sol=avalia(sol,tipo_func);
     fo_best=fo_sol;
     %fo_hist(1,:)=[iter fo_best];
     
@@ -39,7 +56,7 @@ for k=1:nreplica
         while iterT < SAmax
             iterT=iterT+1;
             viz=geraviz(sol,lb,ub);
-            fo_viz=avalia(viz);
+            fo_viz=avalia(viz,tipo_func);
             delta=fo_viz-fo_sol;
             if delta < 0
                 sol=viz;
@@ -63,11 +80,9 @@ for k=1:nreplica
     end    
     FO(k)=fo_best;
 end
+
+format short g
 best
 melhor=min(FO)
 media=mean(FO)
 desvio=std(FO)
-
-% fo_best
-% best
-%plot(fo_hist(:,1),fo_hist(:,2),'r-','linewidth',2)
